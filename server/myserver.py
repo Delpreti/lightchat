@@ -81,7 +81,7 @@ class MyServer:
             else: 
                 self.quit_flag = True
         elif cmd == "forceexit":
-            for connection in self.connections:
+            for connection in self.connections.copy():
                 connection.close()
                 self._unregister_connection(connection)
             self.quit_flag = True
@@ -104,13 +104,16 @@ class MyServer:
     def _method_caller(self, conn, addr):
         self._register_connection(conn, addr)
         while True:
-            data = conn.recv(1024)
+            data = conn.recv(3000)
             if not data:
                 print(str(addr) + " has requested to end his session.")
                 self._unregister_connection(conn)
                 conn.close()
                 return
-            conn.sendall(bytes(self.method(data), 'utf-8'))
+            response_data = self.method(data.decode("utf-8"))
+            if isinstance(response_data, str):
+                response_data = response_data.encode('utf-8')
+            conn.sendall(response_data)
 
     @staticmethod
     def load_module(module_name, module_path, piece=None):
