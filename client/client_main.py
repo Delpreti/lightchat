@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 
-import socket, argparse, json
+import os, socket, argparse, json, subprocess
 
 peers = {}
+server = None
+username = None
 
 class ServerConnection:
     def __init__(self, host, port):
@@ -56,18 +58,29 @@ def update_peers():
         peers = r["clientes"]
 
 def handle_command(cmd):
-    if command == "list":
+    if cmd == "list":
         update_peers()
-        print("\nLista de usuários online:")
-        for username in peers.keys():
-            print(username)
-        print()
+        print("Lista de usuários online:")
+        for peer in peers.keys():
+            print(peer)
 
-    elif command == "exit":
+    elif cmd == "exit":
+        server.logoff(username)
         exit(0)
 
+    elif cmd.startswith("msg"):
+        peer = cmd[4:]
+        peer = peers.get(peer)
+        if not peer:
+            print("Esse usuário não existe ou está offline.")
+            return
+
+        terminal_args = [os.environ.get("TERMINAL", "gnome-terminal"), "-e"]
+        chat_args = ["./client_chat.py", "-H", peer["ip"], "-p", peer["port"], "-u", username]
+        process = subprocess.Popen(terminal_args + chat_args)
+
 def main():
-    global server
+    global server, username
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-u", "--username", dest="username")
@@ -76,6 +89,7 @@ def main():
     args = parser.parse_args()
 
     server = ServerConnection(args.host, args.port)
+    username = args.username
 
     r = server.login(args.username, 4321)
     if r["status"] != 200:
