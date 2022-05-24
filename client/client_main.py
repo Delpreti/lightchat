@@ -76,16 +76,17 @@ def handle_command(cmd):
             return
 
         terminal_args = [os.environ.get("TERMINAL", "gnome-terminal"), "-e"]
-        chat_args = ["./client_chat.py", "-H", peer["ip"], "-p", peer["port"], "-u", username]
-        process = subprocess.Popen(terminal_args + chat_args)
+        chat_args = [f'./client_chat.py -H {peer["ip"]} -p {peer["porta"]} -u {username}']
+        process = subprocess.Popen(terminal_args + chat_args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        print("hello")
 
 def main():
     global server, username
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-u", "--username", dest="username")
-    parser.add_argument("-H", "--host", dest="host")
-    parser.add_argument("-p", "--port", type=int, dest="port")
+    parser.add_argument("-u", "--username", dest="username", required=True)
+    parser.add_argument("-H", "--host", dest="host", required=True)
+    parser.add_argument("-p", "--port", type=int, dest="port", required=True)
     args = parser.parse_args()
 
     server = ServerConnection(args.host, args.port)

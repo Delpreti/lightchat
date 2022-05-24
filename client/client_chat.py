@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-import socket, argparse, json
+import sys, socket, argparse, json
+from select import select
 
 username = None
 
@@ -38,12 +39,23 @@ def main():
     args = parser.parse_args()
 
     with socket.socket() as s:
-        s.connect(self.socket)
-        while True:
-            size = ord(recvall(socket, 1))
-            response = recvall(socket, size).decode("utf-8")
-            response = json.loads(response)
+        s.connect((args.host, args.port))
 
+        while True:
+            read, _, _ = select([sys.stdin, s], [], [])
+
+            for ready in read:
+                if ready is s:
+                    size = ord(recvall(socket, 1))
+                    r = recvall(socket, size).decode("utf-8")
+                    r = json.loads(r)
+                    print(f'{r["username]}> {r["mensagem"]}')
+                elif ready is sys.stdin:
+                    msg = input()
+                    s.sendall(msg.encode("utf-8"))
+
+    import time
+    time.sleep(10)
 
 if __name__ == "__main__":
     main()
