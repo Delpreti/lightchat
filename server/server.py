@@ -6,6 +6,6 @@ def main():
     # passar hostname e porta aqui para conectar a alguem diferente
     with MyServer() as server:
         # inicia o servidor
-        server.run()
+        server.start()
 
 main()
