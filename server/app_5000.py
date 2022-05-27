@@ -24,37 +24,52 @@ class App: # separar classe abstrata
         self.response = None
         self.command_response_lock = threading.Lock()
 
-    def process(self, text_string):
-        
-        print(text_string)
-        text_string = re.sub(r"^.*{", "{", text_string)
-        content = json.loads(text_string)
-        
-        result = {}
-        # lock to guarantee that the user commands dont get mixed up
+    def send_command(self, content, timeout=None):
+        result = None
         self.command_response_lock.acquire()
         self.command = content
         self.command_event.set()
-        waited = self.response_event.wait(1)
-        if not waited: # timeout
+        waited = True
+        if timeout is None:
+            self.response_event.wait()
+        else:
+            waited = self.response_event.wait(timeout)
+        if not waited:
             self.command_event.clear()
-            result = { "status": 404, "mensagem": "Indisponivel, tente novamente mais tarde" }
         else:
             self.response_event.clear()
             result = self.response
         self.command_response_lock.release()
+        return result
 
-        print(result)
+    def process(self, text_string):
+        
+        print(text_string)
+        text_string = re.sub(r"^.*{", "{", text_string) # corrigir
+        content = json.loads(text_string)
+        
+        result = self.send_command(content, 1)
+        if result is None:
+            result = { "status": 404, "mensagem": "Indisponivel, tente novamente mais tarde" }
         return build_json(result)
 
     def read_buffer(self):
         return self.max_read_buffer
 
+    def terminate(self):
+        if self.send_command({ "terminate": True }) is None:
+            print("Unable to terminate, try again later.")
+
     def main(self):
-        manager = UserManager() # precisa estar inicializado
+        manager = UserManager()
         while True:
             self.command_event.wait()
             self.command_event.clear()
+
+            if "terminate" in self.command:
+                self.response = self.command
+                self.response_event.set()
+                return
 
             # processa aqui
             if "operacao" not in self.command:

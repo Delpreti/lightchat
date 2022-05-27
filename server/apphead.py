@@ -14,6 +14,8 @@ class AppHeader:
         self.status = "ready"
         self.start_method = None # function
 
+        self.thread_obj = None
+
     def configure_socket(self, hostname, max_listen=5, blocking=False):
         """ When the application is initialized, the internal socket must be configured """
         self.app_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -31,7 +33,12 @@ class AppHeader:
 
     def start(self):
         self.status = "running"
-        self.obj.main()
+        self.thread_obj.start()
+
+    def stop(self):
+        self.obj.terminate()
+        self.thread_obj.join()
+        self.status = "ready"
 
     def is_running(self):
         return self.status == "running"

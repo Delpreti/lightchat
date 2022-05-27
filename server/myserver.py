@@ -26,7 +26,7 @@ class MyServer:
                 if entry.name != "apphead.py" and entry.name.startswith("app"):
                     port_num = entry.name.split(".")[0][4:]
                     self.set_application(port_num, entry.name, entry.path)
-        print(f"Server started, {len(self.applications)} applications are running.")
+        print(f"Server started, {len(self.applications)} applications are available.")
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
@@ -78,6 +78,9 @@ class MyServer:
             for connection in self.connections.copy():
                 connection.close()
                 self._unregister_connection(connection)
+            for apph in self.applications.values():
+                if apph.is_running():
+                    apph.stop()
             self.quit_flag = True
         elif cmd == "hist":
             print(str(self.connections.values()))
@@ -87,9 +90,19 @@ class MyServer:
             print(list(self.applications.keys()))
         elif cmd.startswith("run"):
             pcmd = cmd.split(" ")
-            sub_app = threading.Thread(target=self.applications[int(pcmd[1])].start)
-            sub_app.start()
-            print("Application initialized.")
+            if self.applications[int(pcmd[1])].is_running():
+                print(f"Requested application is already running.")
+            else:
+                self.applications[int(pcmd[1])].thread_obj = threading.Thread(target=self.applications[int(pcmd[1])].obj.main)
+                self.applications[int(pcmd[1])].start()
+                print(f"Application on port {pcmd[1]} is now running.")
+        elif cmd.startswith("stop"):
+            pcmd = cmd.split(" ")
+            if self.applications[int(pcmd[1])].is_running():
+                self.applications[int(pcmd[1])].stop()
+                print(f"Application on port {pcmd[1]} was stopped.")
+            else:
+                print(f"Requested application is not running.")
         elif cmd == "apps":
             i = 0
             for app in self.applications.values():
