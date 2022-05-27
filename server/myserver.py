@@ -33,6 +33,8 @@ class MyServer:
         """ When the server is finishing, the internal sockets must be closed """
         for app in self.applications.values():
             app.close_connection()
+            if app.is_running():
+                app.stop(5)
 
     def start(self, app_name="app", app_path=""):
         """ method to start the server """
@@ -78,9 +80,6 @@ class MyServer:
             for connection in self.connections.copy():
                 connection.close()
                 self._unregister_connection(connection)
-            for apph in self.applications.values():
-                if apph.is_running():
-                    apph.stop()
             self.quit_flag = True
         elif cmd == "hist":
             print(str(self.connections.values()))

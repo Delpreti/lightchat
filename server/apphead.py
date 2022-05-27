@@ -35,10 +35,14 @@ class AppHeader:
         self.status = "running"
         self.thread_obj.start()
 
-    def stop(self):
-        self.obj.terminate()
-        self.thread_obj.join()
-        self.status = "ready"
+    def stop(self, retry=1):
+        for _ in range(retry):
+            try:
+                self.obj.terminate()
+                self.thread_obj.join()
+                self.status = "ready"
+            except:
+                print("Failed to stop, reattempting...")
 
     def is_running(self):
         return self.status == "running"

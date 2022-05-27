@@ -58,7 +58,7 @@ class App: # separar classe abstrata
 
     def terminate(self):
         if self.send_command({ "terminate": True }) is None:
-            print("Unable to terminate, try again later.")
+            raise RuntimeError("The application is unable to terminate.")
 
     def main(self):
         manager = UserManager()
