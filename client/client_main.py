@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 
-import os, socket, argparse, json, subprocess
+import sys, os, socket, argparse, json, subprocess
+from select import select
+
+RECV_HOST = ""
+RECV_PORT = 4321
 
 peers = {}
 server = None
@@ -98,9 +102,22 @@ def main():
         exit(1)
     update_peers()
 
-    while True:
-        cmd = input("> ")
-        handle_command(cmd)
+    with socket.socket() as s:
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        s.bind((RECV_HOST, RECV_PORT))
+        s.listen()
+
+        print("> ", end="", flush=True)
+
+        while True:
+            read, _, _ = select([sys.stdin, s], [], [])
+            for ready in read:
+                if ready is s:
+                    print("received something lol")
+                elif ready is sys.stdin:
+                    cmd = input()
+                    handle_command(cmd)
+                    print("> ", end="", flush=True)
 
 if __name__ == "__main__":
     main()
