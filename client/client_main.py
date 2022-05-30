@@ -75,10 +75,11 @@ def handle_command(cmd):
             print("Esse usuário não existe ou está offline.")
             return
 
-        terminal_args = [os.environ.get("TERMINAL", "gnome-terminal"), "-e"]
-        chat_args = [f'./client_chat.py -H {peer["ip"]} -p {peer["porta"]} -u {username}']
-        process = subprocess.Popen(terminal_args + chat_args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        print("hello")
+        chat_args = f'cd ~/lightchat/client; ./client_chat.py -H {peer["ip"]} -p {peer["porta"]} -u {username}'
+        terminal_args = ["osascript", "-e", f'tell app "Terminal" to do script "{chat_args}"']
+        # terminal_args = [os.environ.get("TERMINAL", "gnome-terminal"), "-e"]
+        # chat_args = [f'./client_chat.py -H {peer["ip"]} -p {peer["porta"]} -u {username}']
+        process = subprocess.Popen(terminal_args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 def main():
     global server, username

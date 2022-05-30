@@ -2,6 +2,7 @@
 
 import sys, socket, argparse, json
 from select import select
+from client_main import build_request
 
 username = None
 
@@ -39,6 +40,7 @@ def main():
     args = parser.parse_args()
 
     with socket.socket() as s:
+        print(f"{args.username}> ", end="", flush=True)
         s.connect((args.host, args.port))
 
         while True:
@@ -46,13 +48,14 @@ def main():
 
             for ready in read:
                 if ready is s:
-                    size = ord(recvall(socket, 1))
-                    r = recvall(socket, size).decode("utf-8")
+                    size = ord(recvall(s, 1))
+                    r = recvall(s, size).decode("utf-8")
                     r = json.loads(r)
-                    print(f'{r["username]}> {r["mensagem"]}')
+                    print(f'{r["username"]}> {r["mensagem"]}')
                 elif ready is sys.stdin:
-                    msg = input()
-                    s.sendall(msg.encode("utf-8"))
+                    msg = input(f"{args.username}> ")
+                    req = build_request({"username": args.username, "mensagem": msg})
+                    s.sendall(req)
 
     import time
     time.sleep(10)
