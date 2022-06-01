@@ -42,10 +42,12 @@ class App: # separar classe abstrata
         self.command_response_lock.release()
         return result
 
-    def process(self, text_string):
+    def process(self, text_string, connection_info):
         
         print(text_string)
-        text_string = re.sub(r"^.*{", "{", text_string) # corrigir
+        text_string = re.sub(r"^.*{", "{\"ip\":\"" + connection_info[0] + "\",", text_string) # corrigir
+
+        print(text_string)
         content = json.loads(text_string)
         
         result = self.send_command(content, 1)

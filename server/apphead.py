@@ -21,7 +21,7 @@ class AppHeader:
         self.app_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.app_socket.bind((hostname, self.port))
         self.app_socket.listen(5)
-        self.app_socket.setblocking(False)
+        #self.app_socket.setblocking(False)
         
     def setup(self, app_cls):
         """ Keep an application object initialized """

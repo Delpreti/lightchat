@@ -4,7 +4,7 @@ import sys, os, socket, argparse, json, subprocess
 from select import select
 
 RECV_HOST = ""
-RECV_PORT = 4321
+RECV_PORT = 54322
 
 peers = {}
 server = None
@@ -99,6 +99,8 @@ def main():
 
     r = server.login(args.username, 4321)
     if r["status"] != 200:
+        print(r["status"])
+        print("Erro ao fazer login")
         exit(1)
     update_peers()
 

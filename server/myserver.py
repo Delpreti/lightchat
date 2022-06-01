@@ -131,7 +131,7 @@ class MyServer:
                 self._unregister_connection(conn)
                 conn.close()
                 return
-            response_data = self.applications[sock_id].obj.process(data.decode("utf-8"))
+            response_data = self.applications[sock_id].obj.process(data.decode("utf-8"), addr)
             if isinstance(response_data, str):
                 response_data = response_data.encode('utf-8')
             conn.sendall(response_data)
