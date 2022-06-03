@@ -44,10 +44,9 @@ class App: # separar classe abstrata
 
     def process(self, text_string, connection_info):
         
-        print(text_string)
-        text_string = re.sub(r"^.*{", "{\"ip\":\"" + connection_info[0] + "\",", text_string) # corrigir
+        text_string = re.sub(r"^[^{]*{", "{\"ip\":\"" + connection_info[0] + "\",", text_string)
 
-        print(text_string)
+        #print(text_string)
         content = json.loads(text_string)
         
         result = self.send_command(content, 1)
@@ -59,7 +58,7 @@ class App: # separar classe abstrata
         return self.max_read_buffer
 
     def terminate(self):
-        if self.send_command({ "terminate": True }) is None:
+        if self.send_command("terminate") is None:
             raise RuntimeError("The application is unable to terminate.")
 
     def main(self):

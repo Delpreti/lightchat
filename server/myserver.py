@@ -67,6 +67,7 @@ class MyServer:
 
     def _attend_client(self, socket):
         cliente = threading.Thread(target=self._method_caller, args=socket.accept())
+        cliente.setDaemon(True)
         cliente.start()
 
     def _answer_commands(self):
@@ -108,7 +109,6 @@ class MyServer:
                 if app.is_running():
                     i += 1
             print(f"There are currently {i} apps running on this server.")
-        
 
     def _register_connection(self, conn, addr):
         self.connections_lock.acquire()
@@ -121,16 +121,33 @@ class MyServer:
         del self.connections[conn]
         self.connections_lock.release()
 
+    def _recvall(self, sock, length):
+        buff = bytearray(length)
+        pos = 0
+        while pos < length:
+            read = sock.recv_into(memoryview(buff)[pos:])
+            if read == 0:
+                raise EOFError
+            pos += read
+        return buff
+
+    def _recv_ott(self, sock):
+        size = ord(self._recvall(sock, 1))
+        return self._recvall(sock, size)
+
     def _method_caller(self, conn, addr):
         self._register_connection(conn, addr)
         sock_id = conn.getsockname()[1]
         while True:
-            data = conn.recv(self.applications[sock_id].obj.read_buffer())
-            if not data:
-                print(str(addr) + " has requested to end his session.")
+            data = bytearray()
+            try:
+                #data = conn.recv(self.applications[sock_id].obj.read_buffer())
+                data = self._recv_ott(conn)
+            except EOFError:
+                print(str(addr) + " session has ended.")
                 self._unregister_connection(conn)
                 conn.close()
-                return
+                sys.exit()
             response_data = self.applications[sock_id].obj.process(data.decode("utf-8"), addr)
             if isinstance(response_data, str):
                 response_data = response_data.encode('utf-8')
