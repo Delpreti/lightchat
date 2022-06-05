@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
-import sys, os, socket, argparse, json, subprocess
+import sys, os, socket, argparse, json, subprocess, platform, fcntl, random
 from select import select
 
 RECV_HOST = ""
-RECV_PORT = 54322
+RECV_PORT = random.randrange(1024, 65536)
 
 peers = {}
 server = None
@@ -61,6 +61,45 @@ def update_peers():
     if r["status"] == 200:
         peers = r["clientes"]
 
+def open_process(args):
+    return subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, close_fds=False)
+
+def create_chat(peer):
+    # MacOS
+    if platform.system() == "Darwin":
+        script = f'cd {os.getcwd()}; ./client_chat.py -H {peer["ip"]} -p {peer["porta"]} -u {username}'
+        terminal_args = ["osascript", "-e", f'tell app "Terminal" to do script "{script}"']
+        open_process(terminal_args)
+
+    # Linux
+    elif platform.system() == "Linux":
+        chat_args = ["./client_chat.py", "-H", peer["ip"], "-p", peer["porta"], "-u", username]
+        if os.environ.get("TERMINAL"):
+            terminal_args = [os.environ.get("TERMINAL"), "-e"] + chat_args
+            open_process(terminal_args)
+        else:
+            terminal_args = ["gnome-terminal", "-e", " ".join(chat_args)]
+            open_process(terminal_args)
+
+def receive_chat(fd):
+    fd = str(fd)
+
+    # MacOS
+    if platform.system() == "Darwin":
+        script = f'cd {os.getcwd()}; ./client_chat.py -f {fd} -u {username}'
+        terminal_args = ["osascript", "-e", f'tell app "Terminal" to do script "{script}"']
+        open_process(terminal_args)
+
+    # Linux
+    elif platform.system() == "Linux":
+        chat_args = ["./client_chat.py", "-f", fd, "-u", username]
+        if os.environ.get("TERMINAL"):
+            terminal_args = [os.environ.get("TERMINAL"), "-e"] + chat_args
+            open_process(terminal_args)
+        else:
+            terminal_args = ["gnome-terminal", "-e", " ".join(chat_args)]
+            open_process(terminal_args)
+
 def handle_command(cmd):
     if cmd == "list":
         update_peers()
@@ -79,25 +118,25 @@ def handle_command(cmd):
             print("Esse usuário não existe ou está offline.")
             return
 
-        chat_args = f'cd ~/lightchat/client; ./client_chat.py -H {peer["ip"]} -p {peer["porta"]} -u {username}'
-        terminal_args = ["osascript", "-e", f'tell app "Terminal" to do script "{chat_args}"']
-        # terminal_args = [os.environ.get("TERMINAL", "gnome-terminal"), "-e"]
-        # chat_args = [f'./client_chat.py -H {peer["ip"]} -p {peer["porta"]} -u {username}']
-        process = subprocess.Popen(terminal_args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        create_chat(peer)
 
 def main():
-    global server, username
+    global server, username, RECV_PORT
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-u", "--username", dest="username", required=True)
     parser.add_argument("-H", "--host", dest="host", required=True)
     parser.add_argument("-p", "--port", type=int, dest="port", required=True)
+    parser.add_argument("-l", "--listen", type=int, dest="listen")
     args = parser.parse_args()
 
     server = ServerConnection(args.host, args.port)
     username = args.username
 
-    r = server.login(args.username, 4321)
+    if args.listen:
+        RECV_PORT = args.listen
+
+    r = server.login(args.username, RECV_PORT)
     if r["status"] != 200:
         print(r["status"])
         print("Erro ao fazer login")
@@ -115,7 +154,14 @@ def main():
             read, _, _ = select([sys.stdin, s], [], [])
             for ready in read:
                 if ready is s:
-                    print("received something lol")
+                    conn, addr = s.accept()
+                    print(f"\r{addr} abriu um chat com você")
+                    print("> ", end="", flush=True)
+
+                    flags = fcntl.fcntl(conn, fcntl.F_GETFD, 0)
+                    fcntl.fcntl(conn, fcntl.F_SETFD, flags & ~fcntl.FD_CLOEXEC)
+                    receive_chat(conn.fileno())
+                    conn.close()
                 elif ready is sys.stdin:
                     cmd = input()
                     handle_command(cmd)

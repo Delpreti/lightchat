@@ -33,15 +33,22 @@ def recvall(socket, length):
     return buff
 
 def main():
+    import time
     parser = argparse.ArgumentParser()
-    parser.add_argument("-u", "--username", dest="username")
+    parser.add_argument("-u", "--username", dest="username", required=True)
     parser.add_argument("-H", "--host", dest="host")
     parser.add_argument("-p", "--port", type=int, dest="port")
+    parser.add_argument("-f", "--fd", type=int, dest="fd")
     args = parser.parse_args()
 
-    with socket.socket() as s:
-        print(f"{args.username}> ", end="", flush=True)
+    if args.fd:
+        s = socket.fromfd(args.fd, socket.AF_INET, socket.SOCK_STREAM)
+    else:
+        s = socket.socket()
         s.connect((args.host, args.port))
+
+    with s:
+        print(f"{args.username}> ", end="", flush=True)
 
         while True:
             read, _, _ = select([sys.stdin, s], [], [])
@@ -51,14 +58,12 @@ def main():
                     size = ord(recvall(s, 1))
                     r = recvall(s, size).decode("utf-8")
                     r = json.loads(r)
-                    print(f'{r["username"]}> {r["mensagem"]}')
+                    print(f'\r{r["username"]}> {r["mensagem"]}')
+                    print(f"{args.username}> ", end="", flush=True)
                 elif ready is sys.stdin:
                     msg = input(f"{args.username}> ")
                     req = build_request({"username": args.username, "mensagem": msg})
                     s.sendall(req)
-
-    import time
-    time.sleep(10)
 
 if __name__ == "__main__":
     main()
