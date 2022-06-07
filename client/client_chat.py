@@ -58,7 +58,8 @@ def main():
                     size = ord(recvall(s, 1))
                     r = recvall(s, size).decode("utf-8")
                     r = json.loads(r)
-                    print(f'\r{r["username"]}> {r["mensagem"]}')
+                    print(f'\r{r["username"]}> {r["mensagem"]}', end="")
+                    print("                                           ")
                     print(f"{args.username}> ", end="", flush=True)
                 elif ready is sys.stdin:
                     msg = input(f"{args.username}> ")
