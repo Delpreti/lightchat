@@ -30,17 +30,17 @@ class ServerConnection:
 
 def build_request(args):
     content = json.dumps(args, separators=(",", ":")).encode("utf-8")
-    if len(content) > 0xff:
+    if len(content) > 0xffff:
         return None
 
-    length = len(content).to_bytes(1, byteorder="big")
+    length = len(content).to_bytes(2, byteorder="big")
     return length + content
 
 def send_request(socket, args):
     req = build_request(args)
     socket.sendall(req)
 
-    size = ord(recvall(socket, 1))
+    size = int.from_bytes(recvall(socket, 2), "big")
     response = recvall(socket, size).decode("utf-8")
     return json.loads(response)
 

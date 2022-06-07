@@ -16,8 +16,8 @@ with socket.socket() as s:
             req = conn.recv(1024)
             print(req)
             if b"get_lista" in req:
-                conn.sendall(b'\x62{"operacao":"get_lista","status":200,"clientes":{"luanzinho32":{"ip":"127.0.0.1","porta":"4321"}}}')
+                conn.sendall(b'\x00\x62{"operacao":"get_lista","status":200,"clientes":{"luanzinho32":{"ip":"127.0.0.1","porta":"4321"}}}')
             elif b"login" in req:
-                conn.sendall(b'\x21{"operacao":"login","status":200}')
+                conn.sendall(b'\x00\x21{"operacao":"login","status":200}')
             elif b"logoff" in req:
-                conn.sendall(b'\x26{"operacao":"logoff","status":200}')
+                conn.sendall(b'\x00\x26{"operacao":"logoff","status":200}')

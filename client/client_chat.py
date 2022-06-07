@@ -6,19 +6,11 @@ from client_main import build_request
 
 username = None
 
-def build_request(args):
-    content = json.dumps(args, separators=(",", ":")).encode("utf-8")
-    if len(content) > 0xff:
-        return None
-
-    length = len(content).to_bytes(1, byteorder="big")
-    return length + content
-
 def send_request(socket, args):
     req = build_request(args)
     socket.sendall(req)
 
-    size = ord(recvall(socket, 1))
+    size = int.from_bytes(recvall(socket, 2), "big")
     response = recvall(socket, size).decode("utf-8")
     return json.loads(response)
 
@@ -55,7 +47,7 @@ def main():
 
             for ready in read:
                 if ready is s:
-                    size = ord(recvall(s, 1))
+                    size = int.from_bytes(recvall(s, 2), "big")
                     r = recvall(s, size).decode("utf-8")
                     r = json.loads(r)
                     print(f'\r{r["username"]}> {r["mensagem"]}', end="")
