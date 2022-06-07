@@ -20,4 +20,4 @@ with socket.socket() as s:
             elif b"login" in req:
                 conn.sendall(b'\x00\x21{"operacao":"login","status":200}')
             elif b"logoff" in req:
-                conn.sendall(b'\x00\x26{"operacao":"logoff","status":200}')
+                conn.sendall(b'\x00\x22{"operacao":"logoff","status":200}')

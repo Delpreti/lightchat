@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import sys, os, socket, argparse, json, subprocess, platform, fcntl, random
+import sys, os, socket, argparse, json, subprocess, platform, fcntl, random, signal
 from select import select
 
 RECV_HOST = ""
@@ -112,6 +112,7 @@ def handle_command(cmd):
         exit(0)
 
     elif cmd.startswith("msg"):
+        update_peers()
         peer = cmd[4:]
         peer = peers.get(peer)
         if not peer:
@@ -122,6 +123,12 @@ def handle_command(cmd):
 
 def main():
     global server, username, RECV_PORT
+
+    def sigint_handler(sig, frame):
+        server.logoff(username)
+        exit(0)
+
+    signal.signal(signal.SIGINT, sigint_handler)
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-u", "--username", dest="username", required=True)
