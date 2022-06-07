@@ -80,9 +80,9 @@ class App: # separar classe abstrata
                 if operation == "login":
                     try:
                         user_name = self.command.get("username")
-                        user_ip = "undefined" # corrigir
+                        user_ip = self.command.get("ip")
                         user_port = self.command.get("porta")
-                        manager.user_login(user_name, { "ip": user_ip, "porta": user_port})
+                        manager.user_login(user_name, { "ip": str(user_ip), "porta": str(user_port)})
                         self.response = { "operacao": "login", "status": 200, "mensagem": "Login com sucesso" }
                     except:
                         self.response = { "operacao": "login", "status": 400, "mensagem": "Login falhou!" }

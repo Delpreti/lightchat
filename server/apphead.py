@@ -47,3 +47,6 @@ class AppHeader:
 
     def is_running(self):
         return self.status == "running"
+
+    def is_executable(self):
+        return True # default

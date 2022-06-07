@@ -11,7 +11,7 @@ class UserManager:
     def user_logoff(self, username):
         if username not in self.userdict:
             raise RuntimeError("The user was not logged in!")
-        self.userdict.remove(username)
+        del self.userdict[username]
 
     def get_list(self):
         return self.userdict

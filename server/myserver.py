@@ -39,6 +39,9 @@ class MyServer:
     def start(self, app_name="app", app_path=""):
         """ method to start the server """
         self.update(False)
+        for port, app in self.applications.items():
+            if app.is_executable():
+                self._run_app(port, app);
         while not self.quit_flag:
             reciever_list, _, _ = select.select(self.entradas, [], [])
             for reciever in reciever_list:
@@ -70,6 +73,11 @@ class MyServer:
         cliente.setDaemon(True)
         cliente.start()
 
+    def _run_app(self, portnum, apphead):
+        apphead.thread_obj = threading.Thread(target=apphead.obj.main)
+        apphead.start()
+        print(f"Application on port {portnum} is now running.")
+
     def _answer_commands(self):
         cmd = input()
         if cmd == "exit":
@@ -93,9 +101,7 @@ class MyServer:
             if self.applications[int(pcmd[1])].is_running():
                 print(f"Requested application is already running.")
             else:
-                self.applications[int(pcmd[1])].thread_obj = threading.Thread(target=self.applications[int(pcmd[1])].obj.main)
-                self.applications[int(pcmd[1])].start()
-                print(f"Application on port {pcmd[1]} is now running.")
+                self._run_app(pcmd[1], self.applications[int(pcmd[1])])
         elif cmd.startswith("stop"):
             pcmd = cmd.split(" ")
             if self.applications[int(pcmd[1])].is_running():
