@@ -78,7 +78,7 @@ def create_chat(peer):
             terminal_args = [os.environ.get("TERMINAL"), "-e"] + chat_args
             open_process(terminal_args)
         else:
-            terminal_args = ["gnome-terminal", "-e", " ".join(chat_args)]
+            terminal_args = ["gnome-terminal", "--"] + chat_args
             open_process(terminal_args)
 
 def receive_chat(fd):
@@ -97,7 +97,7 @@ def receive_chat(fd):
             terminal_args = [os.environ.get("TERMINAL"), "-e"] + chat_args
             open_process(terminal_args)
         else:
-            terminal_args = ["gnome-terminal", "-e", " ".join(chat_args)]
+            terminal_args = ["gnome-terminal", "--fd", fd, "--"] + chat_args
             open_process(terminal_args)
 
 def handle_command(cmd):
