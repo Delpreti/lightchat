@@ -138,7 +138,8 @@ class MyServer:
         return buff
 
     def _recv_ott(self, sock):
-        size = ord(self._recvall(sock, 1))
+        size = int.from_bytes(recvall(socket, 2), "big")
+        #size = ord(self._recvall(sock, 1))
         return self._recvall(sock, size)
 
     def _method_caller(self, conn, addr):

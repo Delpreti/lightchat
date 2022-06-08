@@ -7,10 +7,10 @@ from usermanager import UserManager
 
 def build_json(args):
     content = json.dumps(args, separators=(",", ":")).encode("utf-8")
-    if len(content) > 0xff:
+    if len(content) > 0xffff:
         return None
 
-    length = len(content).to_bytes(1, byteorder="big")
+    length = len(content).to_bytes(2, byteorder="big")
     return length + content
 
 class App: # separar classe abstrata
