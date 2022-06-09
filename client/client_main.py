@@ -145,8 +145,7 @@ def main():
 
     r = server.login(args.username, RECV_PORT)
     if r["status"] != 200:
-        print(r["status"])
-        print("Erro ao fazer login")
+        print(f'Erro código {r["status"]}: {r["mensagem"]}')
         exit(1)
     update_peers()
 
