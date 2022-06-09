@@ -20,7 +20,7 @@ class ServerConnection:
             return send_request(s, args)
 
     def login(self, username, port):
-        return self._send_request({"operacao": "login", "username": username, "porta": port})
+        return self._send_request({"operacao": "login", "username": username, "Porta": port})
 
     def logoff(self, username):
         return self._send_request({"operacao": "logoff", "username": username})
@@ -67,13 +67,13 @@ def open_process(args):
 def create_chat(peer):
     # MacOS
     if platform.system() == "Darwin":
-        script = f'cd {os.getcwd()}; ./client_chat.py -H {peer["ip"]} -p {peer["porta"]} -u {username}'
+        script = f'cd {os.getcwd()}; ./client_chat.py -H {peer["Endereco"]} -p {peer["Porta"]} -u {username}'
         terminal_args = ["osascript", "-e", f'tell app "Terminal" to do script "{script}"']
         open_process(terminal_args)
 
     # Linux
     elif platform.system() == "Linux":
-        chat_args = ["./client_chat.py", "-H", peer["ip"], "-p", peer["porta"], "-u", username]
+        chat_args = ["./client_chat.py", "-H", peer["Endereco"], "-p", peer["Porta"], "-u", username]
         if os.environ.get("TERMINAL"):
             terminal_args = [os.environ.get("TERMINAL"), "-e"] + chat_args
             open_process(terminal_args)

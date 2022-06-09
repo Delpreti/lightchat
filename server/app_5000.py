@@ -44,7 +44,7 @@ class App: # separar classe abstrata
 
     def process(self, text_string, connection_info):
         
-        text_string = re.sub(r"^[^{]*{", "{\"ip\":\"" + connection_info[0] + "\",", text_string)
+        text_string = re.sub(r"^[^{]*{", "{\"Endereco\":\"" + str(connection_info[0]) + "\",", text_string)
 
         #print(text_string)
         content = json.loads(text_string)
@@ -53,6 +53,10 @@ class App: # separar classe abstrata
         if result is None:
             result = { "status": 404, "mensagem": "Indisponivel, tente novamente mais tarde" }
         return build_json(result)
+
+    def on_exit(self, connection_info):
+        content = json.loads("{\"operacao\":\"_logoff_by_ip\",\"Endereco\":" + str(connection_info[0]) + "}")
+        self.send_command(content, 1)
 
     def read_buffer(self):
         return self.max_read_buffer
@@ -80,9 +84,9 @@ class App: # separar classe abstrata
                 if operation == "login":
                     try:
                         user_name = self.command.get("username")
-                        user_ip = self.command.get("ip")
-                        user_port = self.command.get("porta")
-                        manager.user_login(user_name, { "ip": str(user_ip), "porta": str(user_port)})
+                        user_ip = self.command.get("Endereco")
+                        user_port = self.command.get("Porta")
+                        manager.user_login(user_name, { "Endereco": str(user_ip), "Porta": str(user_port)})
                         self.response = { "operacao": "login", "status": 200, "mensagem": "Login com sucesso" }
                     except:
                         self.response = { "operacao": "login", "status": 400, "mensagem": "Login falhou!" }
@@ -97,8 +101,8 @@ class App: # separar classe abstrata
                     try:
                         self.response = { "operacao": "get_lista", "status": 200, "clientes": manager.get_list() }
                     except:
-                        self.response = { "operacao": "get_lista", "status": 400, "mensagem": "Nao foi possivel obter a lista" }
+                        self.response = { "operacao": "get_lista", "status": 400, "mensagem": "Erro ao obter a lista" }
                 else:
-                    self.response = { "operacao": "nao_reconhecida", "status": 69 }
+                    self.response = { "operacao": "nao_reconhecida", "status": 69, "mensagem": "Operacao nao reconhecida" }
 
             self.response_event.set()
