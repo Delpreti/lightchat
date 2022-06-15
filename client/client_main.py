@@ -20,7 +20,7 @@ class ServerConnection:
             return send_request(s, args)
 
     def login(self, username, port):
-        return self._send_request({"operacao": "login", "username": username, "Porta": port})
+        return self._send_request({"operacao": "login", "username": username, "porta": port})
 
     def logoff(self, username):
         return self._send_request({"operacao": "logoff", "username": username})
