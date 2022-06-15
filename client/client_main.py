@@ -20,7 +20,7 @@ class ServerConnection:
             return send_request(s, args)
 
     def login(self, username, port):
-        return self._send_request({"operacao": "login", "username": username, "Porta": port})
+        return self._send_request({"operacao": "login", "username": username, "porta": port})
 
     def logoff(self, username):
         return self._send_request({"operacao": "logoff", "username": username})
@@ -65,40 +65,16 @@ def open_process(args):
     return subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, close_fds=False)
 
 def create_chat(peer):
-    # MacOS
-    if platform.system() == "Darwin":
-        script = f'cd {os.getcwd()}; ./client_chat.py -H {peer["Endereco"]} -p {peer["Porta"]} -u {username}'
-        terminal_args = ["osascript", "-e", f'tell app "Terminal" to do script "{script}"']
-        open_process(terminal_args)
-
-    # Linux
-    elif platform.system() == "Linux":
-        chat_args = ["./client_chat.py", "-H", peer["Endereco"], "-p", peer["Porta"], "-u", username]
-        if os.environ.get("TERMINAL"):
-            terminal_args = [os.environ.get("TERMINAL"), "-e"] + chat_args
-            open_process(terminal_args)
-        else:
-            terminal_args = ["gnome-terminal", "--"] + chat_args
-            open_process(terminal_args)
+    chat_args = ["./client_chat.py", "-H", peer["Endereco"], "-p", peer["Porta"], "-u", username]
+    terminal_args = ["./st", "-e"] + chat_args
+    open_process(terminal_args)
 
 def receive_chat(fd):
     fd = str(fd)
 
-    # MacOS
-    if platform.system() == "Darwin":
-        script = f'cd {os.getcwd()}; ./client_chat.py -f {fd} -u {username}'
-        terminal_args = ["osascript", "-e", f'tell app "Terminal" to do script "{script}"']
-        open_process(terminal_args)
-
-    # Linux
-    elif platform.system() == "Linux":
-        chat_args = ["./client_chat.py", "-f", fd, "-u", username]
-        if os.environ.get("TERMINAL"):
-            terminal_args = [os.environ.get("TERMINAL"), "-e"] + chat_args
-            open_process(terminal_args)
-        else:
-            terminal_args = ["gnome-terminal", "--fd", fd, "--"] + chat_args
-            open_process(terminal_args)
+    chat_args = ["./client_chat.py", "-f", fd, "-u", username]
+    terminal_args = ["./st", "-e"] + chat_args
+    open_process(terminal_args)
 
 def handle_command(cmd):
     if cmd == "list":
